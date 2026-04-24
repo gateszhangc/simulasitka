@@ -6,4 +6,4 @@ resources:
   - ingress.yaml
 images:
   - name: registry.144.91.77.245.sslip.io/simulasitka
-    newTag: af9f758306112bdca98a0d365612a3c8a44bb037
+    newTag: ee5aff1d2d41560acd1d8bdf2ae6e32fb4f875a9
