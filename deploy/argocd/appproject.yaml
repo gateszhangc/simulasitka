@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: simulasitka
+  namespace: argocd
+spec:
+  description: simulasitka application managed from the application repository
+  sourceRepos:
+    - https://github.com/gateszhangc/simulasitka.git
+  destinations:
+    - namespace: simulasitka
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: simulasitka
+  namespace: argocd
+spec:
+  project: simulasitka
+  source:
+    repoURL: https://github.com/gateszhangc/simulasitka.git
+    targetRevision: main
+    path: deploy/k8s/overlays/prod
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: simulasitka
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

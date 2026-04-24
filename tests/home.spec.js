@@ -1,28 +1,41 @@
 const { test, expect } = require("@playwright/test");
 
-test.describe("Artemis II wallpaper site", () => {
-  test("desktop homepage renders key content and filters wallpapers", async ({ page }) => {
+test.describe("Simulasi TKA site", () => {
+  test("desktop homepage renders SEO and selector states", async ({ page }) => {
     await page.goto("/");
 
-    await expect(page).toHaveTitle(/Artemis II Wallpaper/i);
-    await expect(page.locator("h1")).toHaveText("Artemis II Wallpaper");
-    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /publicly released NASA mission imagery/i);
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://artemis-2-wallpaper.lol/");
+    await expect(page).toHaveTitle(/Simulasi TKA/i);
+    await expect(page.locator("html")).toHaveAttribute("lang", "id");
+    await expect(page.locator("h1")).toContainText("Simulasi TKA");
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /simulasi resmi Pusmendik/i);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://simulasitka.lol/");
 
-    const wallpaperCards = page.locator(".wallpaper-card");
-    await expect(wallpaperCards).toHaveCount(10);
-    await expect(page.getByText("Not an official NASA website.")).toBeVisible();
+    const officialLink = page.getByRole("link", { name: "Buka Simulasi Resmi" });
+    await expect(officialLink).toHaveAttribute("href", "https://pusmendik.kemdikbud.go.id/tka/simulasi_tka");
 
-    await page.getByRole("button", { name: "Posters" }).click();
-    await expect(page.locator(".wallpaper-card:not([hidden])")).toHaveCount(2);
-    await expect(page.locator("[data-results-count]")).toHaveText("Showing 2 wallpapers");
+    await expect(page.locator("#mapel option")).toHaveCount(3);
+    await expect(page.locator("[data-mapel-card]")).toHaveCount(3);
+    await expect(page.locator("[data-results-count]")).toHaveText("3 mapel");
 
-    await page.getByRole("button", { name: "All" }).click();
-    await expect(page.locator(".wallpaper-card:not([hidden])")).toHaveCount(10);
+    await page.selectOption("#jenis-mapel", "pilihan");
+    await expect(page.locator("#mapel option")).toHaveCount(19);
+    await expect(page.locator("[data-mapel-card]")).toHaveCount(19);
+    await expect(page.locator("[data-results-count]")).toHaveText("19 mapel");
 
-    for (const image of await page.locator("img").all()) {
-      await image.scrollIntoViewIfNeeded();
-    }
+    await page.selectOption("#jenjang", "smp");
+    await page.selectOption("#jenis-mapel", "wajib");
+    await expect(page.locator("#mapel option")).toHaveCount(2);
+    await expect(page.locator("[data-mapel-card]")).toHaveCount(2);
+
+    await page.selectOption("#jenis-mapel", "pilihan");
+    await expect(page.locator("#mapel")).toBeDisabled();
+    await expect(page.locator("[data-empty-state]")).toBeVisible();
+    await expect(page.locator("[data-results-count]")).toHaveText("0 mapel");
+
+    await page.selectOption("#jenjang", "sd");
+    await page.selectOption("#jenis-mapel", "wajib");
+    await expect(page.locator("#mapel option")).toHaveCount(2);
+    await expect(page.locator("[data-mapel-card]")).toHaveCount(2);
 
     const imagesLoaded = await page.evaluate(() =>
       Array.from(document.images).every((image) => image.complete && image.naturalWidth > 0)
@@ -30,7 +43,7 @@ test.describe("Artemis II wallpaper site", () => {
     expect(imagesLoaded).toBe(true);
   });
 
-  test("mobile layout stays within viewport and keeps gallery accessible", async ({ browser }) => {
+  test("mobile layout keeps CTA and selectors accessible", async ({ browser }) => {
     const context = await browser.newContext({
       viewport: { width: 390, height: 844 },
       isMobile: true
@@ -39,17 +52,16 @@ test.describe("Artemis II wallpaper site", () => {
 
     await page.goto("/");
 
-    await expect(page.locator("h1")).toBeVisible();
-    await expect(page.getByRole("link", { name: "Explore the Collection" })).toBeVisible();
-    await page.getByRole("link", { name: "Explore the Collection" }).click();
-    await expect(page.locator("#gallery")).toBeInViewport();
+    await expect(page.getByRole("link", { name: "Buka Simulasi Resmi" })).toBeVisible();
+    await page.getByRole("link", { name: "Lihat Pilihan Mapel" }).click();
+    await expect(page.locator("#selector-panel")).toBeInViewport();
+    await expect(page.locator("#jenjang")).toBeVisible();
+    await expect(page.locator("#jenis-mapel")).toBeVisible();
+    await expect(page.locator("#mapel")).toBeVisible();
 
-    const overflow = await page.evaluate(() => {
-      return document.documentElement.scrollWidth - window.innerWidth;
-    });
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow).toBeLessThanOrEqual(1);
 
-    await expect(page.locator(".wallpaper-card")).toHaveCount(10);
     await context.close();
   });
 });

@@ -1,19 +1,19 @@
 {
-  "name": "Artemis II Wallpaper",
-  "short_name": "Artemis II",
-  "description": "Independent editorial collection of Artemis II wallpapers using publicly released NASA imagery with source credit.",
+  "name": "Simulasi TKA",
+  "short_name": "Simulasi TKA",
+  "description": "Panduan pilihan jenjang dan mata pelajaran sebelum membuka simulasi resmi.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#050912",
-  "theme_color": "#050912",
+  "background_color": "#eef5fb",
+  "theme_color": "#0b1f33",
   "icons": [
     {
-      "src": "/assets/brand/favicon.png",
+      "src": "assets/brand/favicon.png",
       "sizes": "256x256",
       "type": "image/png"
     },
     {
-      "src": "/assets/brand/apple-touch-icon.png",
+      "src": "assets/brand/apple-touch-icon.png",
       "sizes": "180x180",
       "type": "image/png"
     }

@@ -3,8 +3,9 @@
 node_modules
 playwright-report
 test-results
+npm-debug.log*
 tasks
+tests
 brand
 scripts
-tests
-npm-debug.log*
+README.md

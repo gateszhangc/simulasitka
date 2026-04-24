@@ -3,153 +3,144 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 
 
 ROOT = Path(__file__).resolve().parent.parent
 BRAND_DIR = ROOT / "assets" / "brand"
 FONT_DIR = ROOT / "assets" / "fonts"
 
-TEXT_FONT = FONT_DIR / "Tektur-Medium.ttf"
-BODY_FONT = FONT_DIR / "InstrumentSans-Regular.ttf"
+SANS = FONT_DIR / "InstrumentSans-Regular.ttf"
+SERIF = FONT_DIR / "InstrumentSerif-Regular.ttf"
 
-BG = (7, 10, 20, 255)
-PANEL = (15, 23, 43, 240)
-STROKE = (86, 108, 143, 255)
-ORANGE = (255, 137, 58, 255)
-ICE = (220, 233, 255, 255)
-ASH = (108, 126, 158, 255)
+BG = (11, 31, 51, 255)
+BG_SOFT = (238, 245, 251, 255)
+PRIMARY = (30, 100, 200, 255)
+PRIMARY_DEEP = (17, 72, 144, 255)
+ACCENT = (34, 184, 162, 255)
+ACCENT_SOFT = (217, 245, 241, 255)
+TEXT = (8, 23, 39, 255)
+MUTED = (94, 124, 152, 255)
+WHITE = (255, 255, 255, 255)
 
 
 def font(path: Path, size: int) -> ImageFont.FreeTypeFont:
     return ImageFont.truetype(str(path), size=size)
 
 
-def draw_mark(base: Image.Image, with_panel: bool = False) -> None:
+def draw_grid(draw: ImageDraw.ImageDraw, size: tuple[int, int], step: int, color: tuple[int, int, int, int]) -> None:
+    width, height = size
+    for x in range(0, width, step):
+        draw.line((x, 0, x, height), fill=color, width=1)
+    for y in range(0, height, step):
+        draw.line((0, y, width, y), fill=color, width=1)
+
+
+def draw_mark(base: Image.Image, with_background: bool) -> None:
     draw = ImageDraw.Draw(base)
     width, height = base.size
 
-    if with_panel:
+    if with_background:
+        draw.rounded_rectangle((0, 0, width, height), radius=width // 5, fill=BG)
         draw.rounded_rectangle(
-            (32, 32, width - 32, height - 32),
+            (width * 0.08, height * 0.08, width * 0.92, height * 0.92),
             radius=width // 6,
-            fill=PANEL,
-            outline=(35, 52, 80, 255),
-            width=3,
+            outline=(255, 255, 255, 40),
+            width=max(2, width // 96),
         )
+        draw_grid(draw, base.size, max(16, width // 10), (255, 255, 255, 14))
 
-    cx, cy = width / 2, height / 2
-    scale = min(width, height)
-    orbit_box = (
-        cx - scale * 0.28,
-        cy - scale * 0.20,
-        cx + scale * 0.28,
-        cy + scale * 0.20,
-    )
-    secondary_box = (
-        cx - scale * 0.17,
-        cy - scale * 0.34,
-        cx + scale * 0.17,
-        cy + scale * 0.34,
-    )
+    route_box = (width * 0.18, height * 0.19, width * 0.82, height * 0.78)
+    secondary_box = (width * 0.26, height * 0.27, width * 0.66, height * 0.67)
+    draw.arc(route_box, start=205, end=350, fill=PRIMARY, width=max(6, width // 28))
+    draw.arc(secondary_box, start=205, end=340, fill=ACCENT, width=max(4, width // 40))
 
-    glow = Image.new("RGBA", base.size, (0, 0, 0, 0))
-    glow_draw = ImageDraw.Draw(glow)
-    glow_draw.ellipse(
-        (cx - scale * 0.08, cy - scale * 0.08, cx + scale * 0.08, cy + scale * 0.08),
-        fill=(255, 137, 58, 220),
-    )
-    glow_draw.arc(orbit_box, start=215, end=15, fill=(255, 137, 58, 180), width=max(4, int(scale * 0.028)))
-    glow = glow.filter(ImageFilter.GaussianBlur(radius=scale * 0.015))
-    base.alpha_composite(glow)
-
-    draw.arc(orbit_box, start=210, end=20, fill=ORANGE, width=max(4, int(scale * 0.025)))
-    draw.arc(secondary_box, start=122, end=325, fill=ICE, width=max(2, int(scale * 0.018)))
-
-    moon_box = (
-        cx - scale * 0.09,
-        cy - scale * 0.09,
-        cx + scale * 0.09,
-        cy + scale * 0.09,
-    )
-    draw.ellipse(moon_box, fill=ICE)
-    draw.ellipse(
-        (
-            moon_box[0] + scale * 0.05,
-            moon_box[1] - scale * 0.008,
-            moon_box[2] + scale * 0.06,
-            moon_box[3] + scale * 0.008,
-        ),
-        fill=BG if not with_panel else PANEL,
-    )
-
-    capsule = [
-        (cx - scale * 0.03, cy + scale * 0.13),
-        (cx + scale * 0.04, cy + scale * 0.04),
-        (cx + scale * 0.08, cy + scale * 0.08),
-        (cx + scale * 0.01, cy + scale * 0.17),
-    ]
-    draw.polygon(capsule, fill=ASH, outline=ICE)
     draw.line(
-        (cx - scale * 0.20, cy + scale * 0.24, cx + scale * 0.22, cy + scale * 0.24),
-        fill=STROKE,
-        width=max(2, int(scale * 0.012)),
+        (width * 0.26, height * 0.68, width * 0.68, height * 0.36),
+        fill=WHITE if with_background else PRIMARY_DEEP,
+        width=max(5, width // 34),
     )
     draw.ellipse(
-        (cx + scale * 0.23, cy - scale * 0.18, cx + scale * 0.27, cy - scale * 0.14),
-        fill=ORANGE,
+        (width * 0.22, height * 0.63, width * 0.34, height * 0.75),
+        fill=PRIMARY_DEEP if with_background else BG,
+    )
+    draw.ellipse(
+        (width * 0.62, height * 0.31, width * 0.74, height * 0.43),
+        fill=ACCENT,
+    )
+    draw.ellipse(
+        (width * 0.60, height * 0.29, width * 0.76, height * 0.45),
+        outline=ACCENT_SOFT if with_background else ACCENT,
+        width=max(3, width // 72),
+    )
+    draw.line(
+        (width * 0.46, height * 0.2, width * 0.46, height * 0.8),
+        fill=(255, 255, 255, 34) if with_background else (11, 31, 51, 36),
+        width=max(1, width // 120),
     )
 
 
 def create_mark() -> None:
     image = Image.new("RGBA", (1024, 1024), (0, 0, 0, 0))
-    draw_mark(image)
+    draw_mark(image, with_background=False)
     image.save(BRAND_DIR / "logo-mark.png")
 
 
 def create_wordmark() -> None:
-    image = Image.new("RGBA", (1500, 480), (0, 0, 0, 0))
-    mark = Image.new("RGBA", (420, 420), (0, 0, 0, 0))
-    draw_mark(mark, with_panel=True)
-    image.alpha_composite(mark, (24, 30))
+    image = Image.new("RGBA", (1480, 360), (0, 0, 0, 0))
+    panel = Image.new("RGBA", (300, 300), (0, 0, 0, 0))
+    draw_mark(panel, with_background=True)
+    image.alpha_composite(panel, (0, 30))
 
     draw = ImageDraw.Draw(image)
-    headline_font = font(TEXT_FONT, 116)
-    meta_font = font(BODY_FONT, 34)
-    draw.text((470, 92), "ORBITAL", font=headline_font, fill=ICE)
-    draw.text((470, 208), "SIGNAL", font=headline_font, fill=ORANGE)
-    draw.text((476, 336), "ARTEMIS II WALLPAPER ARCHIVE", font=meta_font, fill=(154, 173, 202, 255))
-    draw.line((474, 316, 1148, 316), fill=STROKE, width=3)
+    title_font = font(SERIF, 106)
+    meta_font = font(SANS, 30)
+
+    draw.text((342, 90), "Simulasi", font=title_font, fill=TEXT)
+    draw.text((775, 90), "TKA", font=title_font, fill=PRIMARY_DEEP)
+    draw.line((346, 208, 1160, 208), fill=(17, 72, 144, 70), width=3)
+    draw.text((346, 228), "PANDUAN PILIHAN JENJANG DAN MAPEL", font=meta_font, fill=MUTED)
     image.save(BRAND_DIR / "logo-wordmark.png")
 
 
 def create_favicon() -> None:
-    favicon = Image.new("RGBA", (256, 256), BG)
-    draw_mark(favicon, with_panel=True)
-    favicon.save(BRAND_DIR / "favicon.png")
-    favicon.resize((180, 180), Image.Resampling.LANCZOS).save(BRAND_DIR / "apple-touch-icon.png")
+    image = Image.new("RGBA", (256, 256), BG)
+    draw_mark(image, with_background=True)
+    image.save(BRAND_DIR / "favicon.png")
+    image.resize((180, 180), Image.Resampling.LANCZOS).save(BRAND_DIR / "apple-touch-icon.png")
 
 
 def create_social_card() -> None:
     width, height = 1200, 630
-    image = Image.new("RGBA", (width, height), BG)
+    image = Image.new("RGBA", (width, height), BG_SOFT)
     draw = ImageDraw.Draw(image)
-    draw.rounded_rectangle((36, 36, width - 36, height - 36), radius=40, outline=(29, 47, 76, 255), width=4)
-    draw.ellipse((-140, -180, 420, 380), fill=(18, 29, 55, 255))
-    draw.ellipse((760, 260, 1310, 820), fill=(13, 19, 36, 255))
-    draw.arc((120, 90, 530, 420), start=210, end=8, fill=ORANGE, width=14)
-    draw.arc((160, 60, 460, 480), start=125, end=330, fill=ICE, width=10)
-    draw.ellipse((260, 180, 380, 300), fill=ICE)
-    draw.ellipse((320, 170, 420, 310), fill=BG)
 
-    headline = font(TEXT_FONT, 78)
-    subhead = font(BODY_FONT, 30)
-    micro = font(BODY_FONT, 22)
-    draw.text((580, 150), "ARTEMIS II", font=headline, fill=ICE)
-    draw.text((580, 240), "WALLPAPER", font=headline, fill=ORANGE)
-    draw.text((582, 352), "HD NASA lunar mission backgrounds for desktop and phone", font=subhead, fill=(172, 188, 213, 255))
-    draw.text((582, 430), "Non-official editorial collection with source credit", font=micro, fill=(132, 151, 181, 255))
-    draw.line((582, 405, 1042, 405), fill=STROKE, width=3)
+    draw.rounded_rectangle((30, 30, width - 30, height - 30), radius=36, fill=(255, 255, 255, 255))
+    draw_grid(draw, (width, height), 44, (17, 72, 144, 12))
+    draw.rounded_rectangle((58, 58, width - 58, height - 58), radius=28, outline=(17, 72, 144, 30), width=2)
+    draw.arc((70, 80, 420, 430), start=204, end=352, fill=PRIMARY, width=16)
+    draw.arc((150, 150, 360, 360), start=210, end=338, fill=ACCENT, width=10)
+    draw.line((170, 360, 384, 190), fill=PRIMARY_DEEP, width=10)
+    draw.ellipse((136, 326, 210, 400), fill=PRIMARY_DEEP)
+    draw.ellipse((350, 154, 430, 234), fill=ACCENT)
+    draw.ellipse((336, 140, 444, 248), outline=ACCENT_SOFT, width=6)
+
+    title_font = font(SERIF, 80)
+    subtitle_font = font(SANS, 28)
+    label_font = font(SANS, 22)
+
+    draw.text((520, 146), "Simulasi TKA", font=title_font, fill=TEXT)
+    draw.text(
+        (522, 274),
+        "Pilih jenjang dan mata pelajaran sebelum membuka simulasi resmi.",
+        font=subtitle_font,
+        fill=MUTED,
+    )
+    draw.line((522, 335, 1024, 335), fill=(17, 72, 144, 48), width=3)
+    draw.rounded_rectangle((522, 376, 868, 432), radius=28, fill=(34, 184, 162, 28))
+    draw.text((548, 392), "PANDUAN INDEPENDEN", font=label_font, fill=PRIMARY_DEEP)
+    draw.rounded_rectangle((884, 376, 1060, 432), radius=28, fill=(30, 100, 200, 28))
+    draw.text((915, 392), "24 APR 2026", font=label_font, fill=PRIMARY_DEEP)
     image.save(BRAND_DIR / "social-card.png")
 
 
